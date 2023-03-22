@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+    :root {
+      --primary-color: #5675b8;
+      --secondary-color: #f27253;
+      --text-color: #fff;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .container {
+      background-color: var(--primary-color);
+      border: 2px solid var(--secondary-color);
+      border-radius: 5px;
+      box-shadow: 0 0 10px var(--secondary-color);
+      width: 80%;
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 20px;
+      color: var(--text-color);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 2rem;
+    }
+
+    p {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+
+    label {
+      display: block;
+      font-size: 1rem;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 5px;
+      border: 1px solid var(--secondary-color);
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      font-size: 1rem;
+      color: var(--primary-color);
+    }
+
+    input[type="button"] {
+      width: 100%;
+      background-color: var(--secondary-color);
+      color: var(--text-color);
+      padding: 14px 20px;
+      border: none;
+      border-radius: 5px;
+      margin-top: 20px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    input[type="button"]:hover {
+      background-color: var(--primary-color);
+    }
+
+    #result {
+      font-size: 1.2rem;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    /* Mobile Responsive Styling */
+    @media only screen and (max-width: 500px) {
+      .container {
+        width: 90%;
+        padding: 10px;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      p {
+        font-size: 0.9rem;
+      }
+
+      label {
+        font-size: 0.9rem;
+      }
+
+      input[type="text"],
+      select {
+        padding: 8px;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+      }
+
+      input[type="button"] {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+      }
+
+      #result {
+        font-size: 1rem;
+      }
+    }
+  </style>
+  </head>
+  <body style="overflow: hidden;">
+    <div class="container">
+      <center><h2>Mortgage Payment Calculator</h2>
+      <p>This calculator provides an expected monthly payment based on the loan amount, interest rate, loan term and repayment type. Enter the above information and click "calculate Payment" to get the results</p></center>
+      <label for="loanAmount">Loan Amount: £</label>
+      <input type="text" id="loanAmount" placeholder="Enter loan amount">
+
+      <label for="interestRate">Interest Rate: %</label>
+      <input
+        type="text"
+        id="interestRate"
+        placeholder="Enter interest rate"
+      >
+
+      <label for="loanTerm">Loan Term (years):</label>
+      <input type="text" id="loanTerm" placeholder="Enter loan term in years">
+
+      <label for="repaymentType">Repayment Type:</label>
+      <select id="repaymentType">
+        <option value="capitalRepayment">Capital Repayment</option>
+        <option value="interestOnly">Interest Only</option>
+      </select>
+
+      <input type="button" value="Calculate Payment" onclick="calculatePayment()">
+      
+<input type="button" value="Reset" onclick="resetForm()">
+
+      <div id="result"></div>
+      </div>
+
+<script>
+  
+   function resetForm() {
+    document.getElementById("loanAmount").value = "";
+    document.getElementById("interestRate").value = "";
+    document.getElementById("loanTerm").value = "";
+    document.getElementById("repaymentType").selectedIndex = 0;
+    document.getElementById("result").innerHTML =
+  "<span style='color: #999;'>Total Cost: £" + Math.round(totalCost).toLocaleString('en-UK', {minimumFractionDigits: 2}) + "</span><br>" +
+  "Monthly Payment: £" + Math.round(monthlyPayment).toLocaleString('en-UK', {minimumFractionDigits: 2});
+   }
+  // Constants
+  const MONTHS_IN_YEAR = 12;
+
+  /**
+   * Check if the given value is valid.
+   *
+   * @param {number} value - The value to check.
+   * @param {string} name - The name of the value to display in the error message.
+   * @returns {boolean} - True if the value is valid, false otherwise.
+   */
+  function isValidValue(value, name) {
+    if (isNaN(value) || value <= 0) {
+      showError(`Please enter a valid ${name}.`);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Calculate the monthly payment and total cost for a loan.
+   */
+  function calculatePayment() {
+    // Get the loan amount, interest rate, and loan term
+    var loanAmount = parseFloat(document.getElementById("loanAmount").value.replace("£", ""));
+    var interestRate = parseFloat(document.getElementById("interestRate").value.replace("%", "")) / 100;
+    var loanTerm = parseInt(document.getElementById("loanTerm").value) * MONTHS_IN_YEAR;
+    var repaymentType = document.getElementById("repaymentType").value;
+
+    // Check if the loan amount, interest rate, and loan term are valid
+    if (!isValidValue(loanAmount, 'loan amount') ||
+        !isValidValue(interestRate, 'interest rate') ||
+        !isValidValue(loanTerm, 'loan term')) {
+      return;
+    }
+
+    // Calculate the monthly payment and total cost
+    var monthlyPayment;
+    var futureValue = 0;
+    var totalCost;
+    if (repaymentType === "capitalRepayment") {
+      futureValue = 0;
+      monthlyPayment = (loanAmount * interestRate / MONTHS_IN_YEAR) / (1 - Math.pow(1 / (1 + interestRate / MONTHS_IN_YEAR), loanTerm));
+    } else if (repaymentType === "interestOnly") {
+      futureValue = loanAmount;
+      monthlyPayment = loanAmount * interestRate / MONTHS_IN_YEAR;
+    }
+
+     totalCost = monthlyPayment * loanTerm;
+  monthlyPayment = Math.round(monthlyPayment);
+
+  document.getElementById("result").innerHTML =
+    "<span style='color: #999;'>Total Cost: £" + totalCost.toLocaleString('en-UK', {minimumFractionDigits: 2}) + "</span><br>" +
+    "Monthly Payment: £" + monthlyPayment.toLocaleString('en-UK');
+
+  }
+
+  /**
+   * Show an error message in the result element.
+   *
+   * @param {string} message - The error message to display.
+   */
+  function showError(message) {
+    document.getElementById("result").innerHTML = message;
+  }
+
+  /**
+   * Clear the form.
+   */
+  function clearForm() {
+    document.getElementById("loanAmount").value = "";
+    document.getElementById("interestRate").value = "";
+    document.getElementById("loanTerm").value = "";
+    document.getElementById("repaymentType").value = "";
+    document.getElementById("result").innerHTML = "";
+  }
+
+  document.getElementById("calculateButton").addEventListener("click", function() {
+    calculatePayment();
+  });
+
+  document.getElementById("clearButton").addEventListener("click", function() {
+    clearForm();
+  });
+</script>
+
+
+
+
+
+  </body>
+</html>
+
+    </div>
+
+    <script>
